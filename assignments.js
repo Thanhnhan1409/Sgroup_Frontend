@@ -32,7 +32,7 @@ class YouTubeChannel {
   }
 }
 
-function nhanEffect(effect) {
+function watchEffect(effect) {
   currentEffect = effect;
   effect();
   currentEffect = null;
@@ -47,7 +47,7 @@ function computed(getter) {
   const effect = () => {
     value = getter();
   };
-  nhanEffect(effect);
+  watchEffect(effect);
   return {
     get value() {
       return value;
@@ -62,7 +62,7 @@ const computedChannelLength = computed(() => {
   return channel.value;
 });
 
-nhanEffect(() => {
+watchEffect(() => {
   console.log('Channel:', channel.value);
 });
 
