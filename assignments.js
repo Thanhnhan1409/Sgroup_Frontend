@@ -1,5 +1,4 @@
 let currentEffect = null;
-
 class YouTubeChannel {
   subscribers
   _value
@@ -15,6 +14,7 @@ class YouTubeChannel {
   }
 
   set value(value) {
+    console.log('set: ', value);
     this._value = value;
     this.notify();
   }
@@ -37,6 +37,7 @@ function watchEffect(effect) {
   effect();
   currentEffect = null;
 }
+const channel = ref('nhan cutee');
 
 function ref(value) {
   return new YouTubeChannel(value);
@@ -55,9 +56,8 @@ function computed(getter) {
   };
 }
 
-const channel = ref('nhan cutee');
 
-const computedChannelLength = computed(() => {
+const computedChannel = computed(() => {
   console.log('heheheh  ');
   return channel.value;
 });
@@ -65,6 +65,12 @@ const computedChannelLength = computed(() => {
 watchEffect(() => {
   console.log('Channel:', channel.value);
 });
-
 channel.value = 'New Channel';
 channel.value = 'New Channel 22';
+
+ // computed
+ class ComputedRef {
+    constructor(fn) {
+        /* D */
+    }
+ }

@@ -5,10 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        .h1 {
+            font-size: 30px;
+            color: aqua;
+        }
+    </style>
 </head>
 
 <body>
-    heheh
+    <div id="app">
+
+    </div>
     <script>
         function h(tag, props, children) {
             if (typeof props === 'string') {
@@ -22,35 +30,87 @@
             }
         }
 
-        const VNode = h('div', 'hello');
+        // // const VNode = h('div', 'hello');
+
+        function propsArray(props, el) {
+            if (typeof props.value === 'string') {
+                el.setAttribute(props.key, props.value)
+            } else if (typeof props.value === 'array') {
+                let newValue = ''
+                props.value.forEach(item => {
+                    if(typeof item === 'string') {
+                        newValue += item + ' '
+                    }else if (typeof item === 'object') {
+                        Object.keys(item).forEach(k => {
+                            if(item[k]) {
+                                newValue += k + ' '
+                            }
+                        })
+                    }
+                })
+                el.setAttribute(props.key, newValue)
+            } else if (typeof props.value === 'object') {
+                let newValue = ''
+                Object.keys(props.value).forEach(k => {
+                    let v = props.value[k]
+                    if(v) {
+                        newValue += v + ' '
+                    }
+                })
+                el.setAttribute(props.key, newValue)
+            } else if(Array.isArray(props.value)) {
+                propsArray({key: 'class', value: props.value}, el)
+            }
+            return el
+        }
 
         function mount(vnode) {
             const { tag, props, children } = vnode;
             const el = document.createElement(tag);
-            if (typeof props === 'object') {
+            if (typeof props === 'object' && props) {
                 Object.keys(props).forEach((key) => {
                     let value = props[key]
-                    if (key !== 'class') {
+                    if (typeof value === 'string') {
                         el.setAttribute(key, value)
-                    } else {
+                    } 
+                    else if (key === 'style') {
                         if (typeof value === 'string') {
                             el.setAttribute(key, value)
-                        } else if (typeof value === 'array') {
-                            let newValue = ''
-                            value.forEach(item => {
-                                newValue += item + ' '
+                        } else if( typeof value === 'object') {
+                            Object.keys(value).forEach((k) => {
+                                let val = value[k]
+                                el.style[k] = val
                             })
-                            el.setAttribute(key, newValue)
-                        } else if (typeof value === 'object') {
-                            let newValue = ''
-                            Object.keys(value).forEach(k => {
-                                let v = value[k]
-                                if(v) {
-                                    newValue += v + ' '
-                                }
-                            })
-                            el.setAttribute(key, newValue)
                         }
+                    }
+                    else if (key === 'class'){
+                        // if (typeof value === 'string') {
+                        //     el.setAttribute(key, value)
+                        // } else if (typeof value === 'array') {
+                        //     let newValue = ''
+                        //     value.forEach(item => {
+                        //         if(typeof item === 'string') {
+                        //             newValue += item + ' '
+                        //         }else if (typeof item === 'object') {
+                        //             Object.keys(item).forEach(k => {
+                        //                 if(item[k]) {
+                        //                     newValue += k + ' '
+                        //                 }
+                        //             })
+                        //         }
+                        //     })
+                        //     el.setAttribute(key, newValue)
+                        // } else if (typeof value === 'object') {
+                        //     let newValue = ''
+                        //     Object.keys(value).forEach(k => {
+                        //         let v = value[k]
+                        //         if(v) {
+                        //             newValue += v + ' '
+                        //         }
+                        //     })
+                        //     el.setAttribute(key, newValue)
+                        // }
+                        propsArray({key: 'class', value: value}, el)
                     }
                 })
             }
@@ -68,6 +128,168 @@
             }
             return el;
         }
+        const VNode = h('div', null, [
+        h('p', {
+            // style: {
+            // color: "red",
+            // fontSize: '20px'
+            // },
+            class: ['h3', 'h2', {'active': 1 > 2}, ['h1']]
+        }
+        , 'helloworld')
+        ])
+        function createApp(option) {
+            const el = mount(option.component)
+            console.log('hrrrrrr',el)
+            const main = document.querySelector(option.id)
+            console.log(main, option.id)
+            main.appendChild(el)
+        }
+        createApp({
+        id: "#app",
+        component: VNode
+        })
+
+        // const VNode = h("div", null, [
+        //     h[
+        //     ("div",
+        //     {
+        //         style: "color: red",
+        //     },
+        //     "Hello World")
+        //     ],
+        //     h[ 
+        //     ("div",
+        //     {
+        //         style: "color: blue",
+        //         class: "text-center",
+        //     },
+        //     "Hello World 2")
+        //     ],
+        //     h[
+        //     ("div",
+        //     {
+        //         style: "color: green",
+        //         class: ["text-center", "text-bold"],
+        //     },
+        //     "Hello World 3")
+        //     ],
+        //     h[
+        //     ("div",
+        //     {
+        //         style: "color: yellow",
+        //         class: {
+        //         "text-center": true,
+        //         "text-bold": true,
+        //         },
+        //     },
+        //     "Hello World 4")
+        //     ],
+        // ]);
+
+        // function createApp(options) {
+        //     const el = mount(options.component);
+
+        //     console.log(el);
+
+        //     document.querySelector(options.id).appendChild(el);
+        // }
+
+        // createApp({
+        //     id: "#app",
+        //     component: VNode,
+        // });
+        // function h(tag, props, child) {
+        //     if(typeof props === 'string') {
+        //         child = props
+        //         props = null
+        //     }
+        // return {
+        //     tag,
+        //     props,
+        //     child
+        // }
+        // }
+
+        // function mount(vnode) {
+        //     const el = document.createElement(vnode.tag)
+        //     if (vnode.props) {
+        //         Object.keys(vnode.props).forEach(key => {
+        //         const value = vnode.props[key]
+
+        //         if (typeof value === 'string') {
+        //             el.setAttribute(key, value)
+        //         }
+        //         if (key === 'style') {
+        //         if (typeof value === 'object' && value) {
+        //             // check if prop is a style css
+        //             Object.keys(value).forEach(key =>{
+        //                 const val = value[key]
+        //                 el.style[key] = val
+        //             })
+        //             }
+        //         }
+
+        //         if (key === 'class') {
+        //             if (typeof value === 'string') {
+        //             el.setAttribute(key, value)
+        //             }
+        //             else if (Array.isArray(value)) {
+        //             value.forEach(item => {
+        //                 if (typeof item === 'string') {
+        //                 el.classList.add(item)
+        //                 } else if (typeof item === 'object' && item) {
+        //                 Object.keys(item).forEach(k => {
+        //                     if (item[k]) {
+        //                     el.classList.add(k)
+        //                     }
+        //                 })
+        //                 }
+        //             })
+        //             }
+        //             else if (typeof value === 'object' && value) {
+        //             Object.keys(value).forEach(k => {
+        //                 if (value[k]) {
+        //                 el.classList.add(k)
+        //                 }
+        //             })
+        //             }
+        //         }
+        //         })
+        //     }
+        //     if (vnode.child && vnode.child.length > 0) {
+        //         console.log(vnode.child)
+        //         if (Array.isArray(vnode.child))
+        //         {
+        //             vnode.child.forEach(c => {
+        //             el.appendChild(mount(c))
+        //             })
+        //         } else el.innerHTML = vnode.child
+        //     } 
+        //     return el
+        // }
+
+        // const VNode = h('div', null, [
+        // h('p', {
+        //     style: {
+        //     color: "red",
+        //     fontSize: '20px'
+        //     },
+        //     class: ['h1', 'h2', {'active': 1 > 2}]
+        // }
+        // , 'helloworld')
+        // ])
+        // function createApp(option) {
+        //     const el = mount(option.component)
+        //     console.log('hrrrrrr',el)
+        //     const main = document.querySelector(option.id)
+        //     console.log(main, option.id)
+        // main.appendChild(el)
+        // }
+        // createApp({
+        // id: "#app",
+        // component: VNode
+        // })
     </script>
 </body>
 
