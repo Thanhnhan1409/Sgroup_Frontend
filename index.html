@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    heheh
+    <script>
+        function h(tag, props, children) {
+            if (typeof props === 'string') {
+                children = props
+                props = null
+            }
+            return {
+                tag,
+                props,
+                children
+            }
+        }
+
+        const VNode = h('div', 'hello');
+
+        function mount(vnode) {
+            const { tag, props, children } = vnode;
+            const el = document.createElement(tag);
+            if (typeof props === 'object') {
+                Object.keys(props).forEach((key) => {
+                    let value = props[key]
+                    if (key !== 'class') {
+                        el.setAttribute(key, value)
+                    } else {
+                        if (typeof value === 'string') {
+                            el.setAttribute(key, value)
+                        } else if (typeof value === 'array') {
+                            let newValue = ''
+                            value.forEach(item => {
+                                newValue += item + ' '
+                            })
+                            el.setAttribute(key, newValue)
+                        } else if (typeof value === 'object') {
+                            let newValue = ''
+                            Object.keys(value).forEach(k => {
+                                let v = value[k]
+                                if(v) {
+                                    newValue += v + ' '
+                                }
+                            })
+                            el.setAttribute(key, newValue)
+                        }
+                    }
+                })
+            }
+            if (typeof children === 'string') {
+                el.textContent = children
+            } else if (Array.isArray(children)) {
+                children.forEach((child) => {
+                    if (typeof child === 'string') {
+                        el.textContent += child
+                    } else {
+                        const childEl = mount(child)
+                        el.appendChild(childEl)
+                    }
+                })
+            }
+            return el;
+        }
+    </script>
+</body>
+
+</html>
