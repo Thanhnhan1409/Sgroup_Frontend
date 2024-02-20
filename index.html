@@ -18,6 +18,80 @@
 
     </div>
     <script>
+        const AppVue = defineComponent({
+            data: {
+                msg: "Hello world!",
+                color: 'red',
+                listHehe: [
+                    "heheh"
+                ]
+            },
+            render() {
+                return h(
+                    "h1", {
+                        style: `color: ${this.data.color}`
+                    },
+                    [
+                        h("span","hheeh"),
+                        h("div", null,this.data.msg)
+                    ]
+                )
+            }
+        })
+
+        function patch(oldVDom, newVDom) {
+            const el = oldVDom.$el;
+            if (oldVDom.tag === newVDom.tag) {
+                // props + children
+                const oldProps = oldVDom.props;
+                const newProps = newVDom.props;
+
+                newProps && Object.keys(newProps).forEach(key => {
+                    const oldValue = oldProps[key];
+                    const newValue = newProps[key];
+
+                    if (oldValue !== newValue) {
+                        oldVDom.$el.setAttribute(key, newValue);
+                    }
+                });
+
+                oldProps && Object.keys(oldProps).forEach(key => {
+                    if (!(key in newProps)) {
+                        oldVDom.removeAttribute(key);
+                    }
+                });
+                const oldChildrend = oldVDom.children;
+                const newChildrend = newVDom.children;
+
+                if(typeof newChildrend === 'string' || typeof newChildrend === 'number') {
+                    oldVDom.$el.textContent = newChildrend;
+                } else if( Array.isArray(newChildrend)) {
+                    if( Array.isArray(oldChildrend)) {
+                        const commonlength = Math.min(oldChildrend, newChildrend);
+                        for (let i =0; i< commonlength; i++) {
+                            patch(oldChildrend[i], newChildrend[i])
+                        }
+                        if(oldChildrend.length < newChildrend.length) {
+                            newChildrend.slice(oldChildrend.length).forEach((child) => {
+                                mount(child, el);
+                                oldChildrend.push(child)
+                            })
+                        } else if(oldChildrend.length > newChildrend.length) {
+                            oldChildrend.slice(newChildrend.length).forEach((child) => {
+                                el.removeChild(child.$el)
+                                oldChildrend.pop();
+                            })
+                        }
+                    }
+                }
+
+            } else {
+                // replace completely
+                oldVDom.$parent.removeChild(oldVDom.$el);
+                // oldVDom.$el = mount(newVDom, oldVDom.$parent).$el; // need to update mount function
+            }
+        }
+        
         function h(tag, props, children) {
             if (typeof props === 'string') {
                 children = props
@@ -67,9 +141,15 @@
         function mount(vnode) {
             const { tag, props, children } = vnode;
             const el = document.createElement(tag);
-            if (typeof props === 'object' && props) {
+
+            if (props) {
                 Object.keys(props).forEach((key) => {
                     let value = props[key]
+
+                    if(key.startsWith("on")) {
+                        el.addEventListener(key.toLowerCase().replace(/^on/, ""), value)
+                    }
+
                     if (typeof value === 'string') {
                         el.setAttribute(key, value)
                     } 
@@ -114,7 +194,7 @@
                     }
                 })
             }
-            if (typeof children === 'string') {
+            if (typeof children === 'string' || typeof children === 'number') {
                 el.textContent = children
             } else if (Array.isArray(children)) {
                 children.forEach((child) => {
@@ -128,6 +208,7 @@
             }
             return el;
         }
+        
         const VNode = h('div', null, [
         h('p', {
             // style: {
@@ -138,158 +219,33 @@
         }
         , 'helloworld')
         ])
+        
         function createApp(option) {
-            const el = mount(option.component)
-            console.log('hrrrrrr',el)
-            const main = document.querySelector(option.id)
-            console.log(main, option.id)
-            main.appendChild(el)
+            let isMounted = false;
+            const VNode = null;
+            // const VNOde = option.component.render();
+            watchEffect(() => {
+                if(!isMounted) {
+                    VNode = option.component.render();
+                    // mount(VNode, document.querySelector(option.id)); // need to update mount function
+                    isMounted = true;
+                } else {
+                    const VNodenew = option.component.render();
+                    patch(VNode, VNodenew)
+                }
+            })
+            // const el = mount(option.component)
+            // // console.log('hrrrrrr',el)
+            // const main = document.querySelector(option.id)
+            // // console.log(main, option.id)
+            // main.appendChild(el)
         }
+        
         createApp({
         id: "#app",
         component: VNode
         })
 
-        // const VNode = h("div", null, [
-        //     h[
-        //     ("div",
-        //     {
-        //         style: "color: red",
-        //     },
-        //     "Hello World")
-        //     ],
-        //     h[ 
-        //     ("div",
-        //     {
-        //         style: "color: blue",
-        //         class: "text-center",
-        //     },
-        //     "Hello World 2")
-        //     ],
-        //     h[
-        //     ("div",
-        //     {
-        //         style: "color: green",
-        //         class: ["text-center", "text-bold"],
-        //     },
-        //     "Hello World 3")
-        //     ],
-        //     h[
-        //     ("div",
-        //     {
-        //         style: "color: yellow",
-        //         class: {
-        //         "text-center": true,
-        //         "text-bold": true,
-        //         },
-        //     },
-        //     "Hello World 4")
-        //     ],
-        // ]);
-
-        // function createApp(options) {
-        //     const el = mount(options.component);
-
-        //     console.log(el);
-
-        //     document.querySelector(options.id).appendChild(el);
-        // }
-
-        // createApp({
-        //     id: "#app",
-        //     component: VNode,
-        // });
-        // function h(tag, props, child) {
-        //     if(typeof props === 'string') {
-        //         child = props
-        //         props = null
-        //     }
-        // return {
-        //     tag,
-        //     props,
-        //     child
-        // }
-        // }
-
-        // function mount(vnode) {
-        //     const el = document.createElement(vnode.tag)
-        //     if (vnode.props) {
-        //         Object.keys(vnode.props).forEach(key => {
-        //         const value = vnode.props[key]
-
-        //         if (typeof value === 'string') {
-        //             el.setAttribute(key, value)
-        //         }
-        //         if (key === 'style') {
-        //         if (typeof value === 'object' && value) {
-        //             // check if prop is a style css
-        //             Object.keys(value).forEach(key =>{
-        //                 const val = value[key]
-        //                 el.style[key] = val
-        //             })
-        //             }
-        //         }
-
-        //         if (key === 'class') {
-        //             if (typeof value === 'string') {
-        //             el.setAttribute(key, value)
-        //             }
-        //             else if (Array.isArray(value)) {
-        //             value.forEach(item => {
-        //                 if (typeof item === 'string') {
-        //                 el.classList.add(item)
-        //                 } else if (typeof item === 'object' && item) {
-        //                 Object.keys(item).forEach(k => {
-        //                     if (item[k]) {
-        //                     el.classList.add(k)
-        //                     }
-        //                 })
-        //                 }
-        //             })
-        //             }
-        //             else if (typeof value === 'object' && value) {
-        //             Object.keys(value).forEach(k => {
-        //                 if (value[k]) {
-        //                 el.classList.add(k)
-        //                 }
-        //             })
-        //             }
-        //         }
-        //         })
-        //     }
-        //     if (vnode.child && vnode.child.length > 0) {
-        //         console.log(vnode.child)
-        //         if (Array.isArray(vnode.child))
-        //         {
-        //             vnode.child.forEach(c => {
-        //             el.appendChild(mount(c))
-        //             })
-        //         } else el.innerHTML = vnode.child
-        //     } 
-        //     return el
-        // }
-
-        // const VNode = h('div', null, [
-        // h('p', {
-        //     style: {
-        //     color: "red",
-        //     fontSize: '20px'
-        //     },
-        //     class: ['h1', 'h2', {'active': 1 > 2}]
-        // }
-        // , 'helloworld')
-        // ])
-        // function createApp(option) {
-        //     const el = mount(option.component)
-        //     console.log('hrrrrrr',el)
-        //     const main = document.querySelector(option.id)
-        //     console.log(main, option.id)
-        // main.appendChild(el)
-        // }
-        // createApp({
-        // id: "#app",
-        // component: VNode
-        // })
     </script>
 </body>
 

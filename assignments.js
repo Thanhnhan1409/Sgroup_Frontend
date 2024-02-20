@@ -32,11 +32,11 @@ class YouTubeChannel {
   }
 }
 
-function watchEffect(effect) {
-  currentEffect = effect;
-  effect();
-  currentEffect = null;
-}
+// function watchEffect(effect) {
+//   currentEffect = effect;
+//   effect();
+//   currentEffect = null;
+// }
 const channel = ref('nhan cutee');
 
 function ref(value) {
